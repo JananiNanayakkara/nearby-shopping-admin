@@ -20,6 +20,10 @@ app.use('/products', productRouter);
 app.use('/reviews', reviewRouter);
 app.use('/orders', orderRouter);
 
+app.get('/', (req, res) => {
+	res.send('Welcome to nearby shopping API');
+});
+
 // Start the server
 const PORT = 8080;
 app.listen(PORT, () => {
