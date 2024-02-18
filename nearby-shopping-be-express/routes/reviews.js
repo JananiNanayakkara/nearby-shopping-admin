@@ -1,76 +1,115 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
-const verifyToken = require('../middleware/authMiddleware');
+const supabase = require('../config/database');
 
 // Create a new review
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
 	const { userId, productId, rating, review } = req.body;
 
-	db.run(
-		'INSERT INTO reviews (userId, productId, rating, review) VALUES (?, ?, ?, ?)',
-		[userId, productId, rating, review],
-		function (err) {
-			if (err) {
-				return res.status(500).json({ error: 'Error creating review' });
-			}
-			res.status(201).json({ message: 'Review created successfully' });
+	try {
+		// Insert review into Supabase
+		const { data, error } = await supabase
+			.from('reviews')
+			.insert([{ userId, productId, rating, review }]);
+
+		if (error) {
+			return res.status(500).json({ error: 'Error creating review' });
 		}
-	);
+
+		res.status(201).json({ message: 'Review created successfully', data });
+	} catch (error) {
+		console.error('Error creating review:', error.message);
+		res.status(500).json({ error: 'Error creating review' });
+	}
 });
 
 // Get all reviews for a product
-router.get('/product/:productId', (req, res) => {
+router.get('/product/:productId', async (req, res) => {
 	const productId = req.params.productId;
-	db.all(
-		'SELECT * FROM reviews WHERE productId = ?',
-		[productId],
-		(err, reviews) => {
-			if (err) {
-				return res.status(500).json({ error: 'Error retrieving reviews' });
-			}
-			res.json(reviews);
+
+	try {
+		// Retrieve all reviews for a product from Supabase
+		const { data, error } = await supabase
+			.from('reviews')
+			.select('*')
+			.eq('productId', productId);
+
+		if (error) {
+			return res.status(500).json({ error: 'Error retrieving reviews' });
 		}
-	);
+
+		res.json(data);
+	} catch (error) {
+		console.error('Error retrieving reviews:', error.message);
+		res.status(500).json({ error: 'Error retrieving reviews' });
+	}
 });
 
 // Get all reviews by a user
-router.get('/user/:userId', (req, res) => {
+router.get('/user/:userId', async (req, res) => {
 	const userId = req.params.userId;
-	db.all('SELECT * FROM reviews WHERE userId = ?', [userId], (err, reviews) => {
-		if (err) {
+
+	try {
+		// Retrieve all reviews by a user from Supabase
+		const { data, error } = await supabase
+			.from('reviews')
+			.select('*')
+			.eq('userId', userId);
+
+		if (error) {
 			return res.status(500).json({ error: 'Error retrieving reviews' });
 		}
-		res.json(reviews);
-	});
+
+		res.json(data);
+	} catch (error) {
+		console.error('Error retrieving reviews:', error.message);
+		res.status(500).json({ error: 'Error retrieving reviews' });
+	}
 });
 
 // Update a review by ID
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
 	const reviewId = req.params.id;
 	const { rating, review } = req.body;
 
-	db.run(
-		'UPDATE reviews SET rating=?, review=? WHERE id=?',
-		[rating, review, reviewId],
-		function (err) {
-			if (err) {
-				return res.status(500).json({ error: 'Error updating review' });
-			}
-			res.json({ message: 'Review updated successfully' });
+	try {
+		// Update review in Supabase
+		const { data, error } = await supabase
+			.from('reviews')
+			.update({ rating, review })
+			.eq('id', reviewId);
+
+		if (error || !data) {
+			return res.status(500).json({ error: 'Error updating review' });
 		}
-	);
+
+		res.json({ message: 'Review updated successfully' });
+	} catch (error) {
+		console.error('Error updating review:', error.message);
+		res.status(500).json({ error: 'Error updating review' });
+	}
 });
 
 // Delete a review by ID
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
 	const reviewId = req.params.id;
-	db.run('DELETE FROM reviews WHERE id = ?', [reviewId], function (err) {
-		if (err) {
+
+	try {
+		// Delete review from Supabase
+		const { error } = await supabase
+			.from('reviews')
+			.delete()
+			.eq('id', reviewId);
+
+		if (error) {
 			return res.status(500).json({ error: 'Error deleting review' });
 		}
+
 		res.json({ message: 'Review deleted successfully' });
-	});
+	} catch (error) {
+		console.error('Error deleting review:', error.message);
+		res.status(500).json({ error: 'Error deleting review' });
+	}
 });
 
 module.exports = router;
