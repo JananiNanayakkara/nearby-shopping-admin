@@ -1,20 +1,29 @@
-const jwt = require('jsonwebtoken');
+const supabase = require('../config/database');
 
-function verifyToken(req, res, next) {
-	const token = req.headers['Authorization'];
+const verifyToken = async (req, res, next) => {
+	const accessToken = req.headers.authorization;
+	console.log('🚀 ~ verifyToken ~ accessToken:', accessToken);
 
-	if (!token) {
-		return res.status(401).json({ error: 'Unauthorized' });
+	if (!accessToken) {
+		return res.status(401).json({ error: 'Access token is missing' });
 	}
 
-	jwt.verify(token, 'ARGON2024', (err, decoded) => {
-		if (err) {
-			return res.status(401).json({ error: 'Unauthorized' });
+	try {
+		// Verify token with Supabase
+		const { data, error } = await supabase.auth.getUser(accessToken);
+		console.log('🚀 ~ verifyToken ~ data:', data);
+		console.log('🚀 ~ verifyToken ~ error:', error);
+
+		if (error || !data) {
+			return res.status(401).json({ error: 'Invalid access token' });
 		}
 
-		req.userId = decoded.userId;
-		next();
-	});
-}
+		req.user = data; // Attach user data to request object
+		next(); // Call next middleware
+	} catch (error) {
+		console.error('Error verifying access token:', error.message);
+		res.status(500).json({ error: 'Internal server error' });
+	}
+};
 
 module.exports = verifyToken;

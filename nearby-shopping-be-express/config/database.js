@@ -1,13 +1,9 @@
-// config/database.js
-const sqlite3 = require('sqlite3').verbose();
+const { createClient } = require('@supabase/supabase-js');
 
-// Connect to SQLite database (if it doesn't exist, it will be created)
-const db = new sqlite3.Database('./config/data.db', (err) => {
-	if (err) {
-		console.error('Error connecting to SQLite database:', err.message);
-	} else {
-		console.log('Connected to SQLite database.');
-	}
-});
+// Initialize Supabase client
+const supabase = createClient(
+	'https://xybtuvhqchrmqjkujlqd.supabase.co',
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5YnR1dmhxY2hybXFqa3VqbHFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDgyNDQ2OTEsImV4cCI6MjAyMzgyMDY5MX0.tARtNVjXtqfTzIpK-XgNN74-g2ZUWNavECHIibgG6aw'
+);
 
-module.exports = db;
+module.exports = supabase;
