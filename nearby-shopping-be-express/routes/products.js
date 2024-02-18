@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/database');
-const verifyToken = require('../middleware/authMiddleware');
 
 // Create a new product
 router.post('/', async (req, res) => {
@@ -82,7 +81,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update product by ID
-router.put('/:id', verifyToken, async (req, res) => {
+router.put('/:id', async (req, res) => {
 	const productId = req.params.id;
 	const { productName, description, price, isInStock, location, nearestCity } =
 		req.body;
@@ -113,7 +112,7 @@ router.put('/:id', verifyToken, async (req, res) => {
 });
 
 // Delete product by ID
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', async (req, res) => {
 	const productId = req.params.id;
 
 	try {
