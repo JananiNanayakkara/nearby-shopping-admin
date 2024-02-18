@@ -8,6 +8,8 @@ The Express backend server is responsible for handling API requests and
 interacting with the database. It provides endpoints for user authentication,
 retrieving nearby shopping locations.
 
+
+
 The React Native mobile app serves as the frontend interface for users. It
 allows users to search for nearby shopping locations, view details about each
 location, and save their favorite locations.
