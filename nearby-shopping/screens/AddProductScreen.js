@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { COLORS } from '../assets/theme';
-import { auth, db } from '../firebase-config';
 import globalStyles from '../assets/globalStyles';
 import * as Location from 'expo-location';
+import setupAxios from '../helpers/axiosConfig';
+import useAuthStore from '../stores/authStore';
 
 const AddProductScreen = ({ route }) => {
 	const { service } = route?.params || {};
@@ -25,11 +26,15 @@ const AddProductScreen = ({ route }) => {
 	const [description, setDescription] = useState('');
 	const [loading, setLoading] = useState(false);
 	const [inStock, setInStock] = useState(true);
+	const { token, id } = useAuthStore();
+
+	const axios = setupAxios(token);
 
 	useEffect(() => {
 		if (service) {
 			setProductName(service.productName);
 			setLocation(service.location);
+			setNearestCity(service.nearestCity);
 			setPrice(service.price);
 			setDescription(service.description);
 			setInStock(service.inStock);
@@ -66,52 +71,14 @@ const AddProductScreen = ({ route }) => {
 			return;
 		}
 
-		const products = db.collection('products');
-
-		if (service) {
-			products
-				.doc(service.key)
-				.update({
-					uid: auth.currentUser.uid,
-					productName,
-					location,
-					price,
-					description,
-					inStock,
-					nearestCity,
-				})
-				.then(() => {
-					alert('Product updated');
-				})
-				.catch((error) => {
-					console.log(error);
-					alert('Error creating product');
-				})
-				.finally(() => {
-					setLoading(false);
-				});
-		} else {
-			products
-				.add({
-					uid: auth.currentUser.uid,
-					productName,
-					location,
-					price,
-					description,
-					inStock,
-					nearestCity,
-				})
-				.then(() => {
-					alert('Product added');
-					resetAllFields();
-				})
-				.catch((error) => {
-					console.log(error);
-					alert('Error creating product');
-				})
-				.finally(() => {
-					setLoading(false);
-				});
+		try {
+			if (service) {
+				updateProduct();
+			} else {
+				addProduct();
+			}
+		} catch (error) {
+			console.log('🚀 ~ handleAddProduct ~ error:', error);
 		}
 	};
 
@@ -119,6 +86,55 @@ const AddProductScreen = ({ route }) => {
 		setProductName('');
 		setPrice('');
 		setDescription('');
+		setNearestCity('');
+	};
+
+	const updateProduct = () => {
+		axios
+			.put(`/products/${service.id}`, {
+				productName,
+				location,
+				nearestCity,
+				price,
+				description,
+				inStock,
+				userid: id,
+			})
+			.then(() => {
+				alert('Product updated');
+				resetAllFields();
+			})
+			.catch((error) => {
+				console.log(error);
+				alert('Error updating product');
+			})
+			.finally(() => {
+				setLoading(false);
+			});
+	};
+
+	const addProduct = () => {
+		axios
+			.post('/products', {
+				productName,
+				location,
+				nearestCity,
+				price,
+				description,
+				inStock,
+				userid: id,
+			})
+			.then(() => {
+				alert('Product added');
+				resetAllFields();
+			})
+			.catch((error) => {
+				console.log(error);
+				alert('Error adding product');
+			})
+			.finally(() => {
+				setLoading(false);
+			});
 	};
 
 	return (

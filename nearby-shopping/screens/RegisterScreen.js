@@ -2,7 +2,6 @@ import {
 	ActivityIndicator,
 	Keyboard,
 	KeyboardAvoidingView,
-	ScrollView,
 	StyleSheet,
 	Text,
 	TextInput,
@@ -10,18 +9,21 @@ import {
 	View,
 } from 'react-native';
 import React, { useState } from 'react';
-import { auth, db } from '../firebase-config';
 import { useNavigation } from '@react-navigation/core';
 
 import { COLORS } from '../assets/theme';
 import globalStyles from '../assets/globalStyles';
 import { PAGES } from '../assets/constants';
+import axios from 'axios';
+import { API_URL } from '../helpers/constants';
+import useAuthStore from '../stores/authStore';
 
 const RegisterScreen = () => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [confirmpassword, setConfirmPassword] = useState('');
 	const [loading, setLoading] = useState(false);
+	const { login, token } = useAuthStore();
 
 	const navigation = useNavigation();
 
@@ -33,40 +35,53 @@ const RegisterScreen = () => {
 			return;
 		}
 
-		auth
-			.createUserWithEmailAndPassword(email, password)
-			.then(() => {
-				login();
-			})
-			.catch((error) => {
-				console.log(error);
-				alert('Error registering');
-			})
-			.finally(() => {
-				setLoading(false);
-			});
+		try {
+			axios
+				.post(`${API_URL}/auth/register`, {
+					email: email,
+					password: password,
+				})
+				.then((response) => {
+					console.log('🚀 ~ .then ~ response:', response.data);
+					setLoading(false);
+					loginFn();
+				})
+				.catch((error) => {
+					console.log('🚀 ~ handleRegister ~ error', error);
+					setLoading(false);
+				});
+		} catch (error) {
+			console.log('🚀 ~ handleRegister ~ error:', error);
+		}
 	};
 
 	const handleLogin = () => {
 		navigation.navigate(PAGES.LOGIN);
 	};
 
-	const login = () => {
+	const loginFn = () => {
 		Keyboard.dismiss();
 		setLoading(true);
 
-		auth
-			.signInWithEmailAndPassword(email, password)
-			.then((userCredential) => {
-				const user = userCredential.user;
-				console.log('Logged in with:', user.email);
-			})
-			.catch((error) => {
-				alert('Error logging in:', error);
-			})
-			.finally(() => {
-				setLoading(false);
-			});
+		try {
+			axios
+				.post(`${API_URL}/auth/login`, {
+					email: email,
+					password: password,
+				})
+				.then((response) => {
+					console.log('🚀 ~ .then ~ response:', response.data.token);
+					setLoading(false);
+					login(response.data.token, response.data.id, email);
+					navigation.replace('Root');
+				})
+				.catch((error) => {
+					console.log('🚀 ~ login ~ error', error);
+					setLoading(false);
+				});
+		} catch (error) {
+			console.log('🚀 ~ login ~ error:', error);
+		}
 	};
 
 	return (

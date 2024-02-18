@@ -42,9 +42,10 @@ const LoginScreen = () => {
 					password: password,
 				})
 				.then((response) => {
-					console.log('🚀 ~ .then ~ response:', response);
+					console.log('🚀 ~ .then ~ response:', response.data.token);
 					login(response.data.token, response.data.id, email);
 					setLoading(false);
+					navigation.replace('Root');
 				})
 				.catch((error) => {
 					console.log('🚀 ~ handleLogin ~ error', error);
