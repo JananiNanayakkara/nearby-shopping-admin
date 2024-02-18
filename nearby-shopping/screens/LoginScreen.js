@@ -10,46 +10,49 @@ import {
 	View,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { auth } from '../firebase-config';
 import { useNavigation } from '@react-navigation/core';
 import { COLORS } from '../assets/theme';
 import globalStyles from '../assets/globalStyles';
 import { PAGES } from '../assets/constants';
+import { API_URL } from '../helpers/constants';
+import useAuthStore from '../stores/authStore';
+import axios from 'axios';
 
 const LoginScreen = () => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [loading, setLoading] = useState(false);
+	const { login, token } = useAuthStore();
 
 	const navigation = useNavigation();
 	useEffect(() => {
-		const uns = auth.onAuthStateChanged((user) => {
-			if (user) {
-				navigation.replace('Root');
-			} else {
-				console.log('Logged out');
-			}
-		});
-
-		return uns;
+		if (token) {
+			navigation.replace('Root');
+		}
 	}, []);
 
 	const handleLogin = () => {
 		Keyboard.dismiss();
 		setLoading(true);
 
-		auth
-			.signInWithEmailAndPassword(email, password)
-			.then((userCredential) => {
-				const user = userCredential.user;
-				console.log('Logged in with:', user.email);
-			})
-			.catch((error) => {
-				alert('Error logging in:', error);
-			})
-			.finally(() => {
-				setLoading(false);
-			});
+		try {
+			axios
+				.post(`${API_URL}/auth/login`, {
+					email: email,
+					password: password,
+				})
+				.then((response) => {
+					console.log('🚀 ~ .then ~ response:', response);
+					login(response.data.token, response.data.id, email);
+					setLoading(false);
+				})
+				.catch((error) => {
+					console.log('🚀 ~ handleLogin ~ error', error);
+					setLoading(false);
+				});
+		} catch (error) {
+			console.log('🚀 ~ handleLogin ~ error:', error);
+		}
 	};
 
 	const handleRegister = () => {
