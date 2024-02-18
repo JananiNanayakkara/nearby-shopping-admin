@@ -29,3 +29,6 @@ const PORT = 3000;
 app.listen(PORT, () => {
 	console.log(`Server is running on port ${PORT}`);
 });
+
+// aJVvhxk07WswzbrR supabase password
+// postgres://postgres.xybtuvhqchrmqjkujlqd:[YOUR-PASSWORD]@aws-0-us-west-1.pooler.supabase.com:5432/postgres
