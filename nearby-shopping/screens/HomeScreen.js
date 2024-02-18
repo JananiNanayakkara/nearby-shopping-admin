@@ -1,43 +1,28 @@
 import React, { useEffect } from 'react';
-import {
-	ScrollView,
-	StyleSheet,
-	Text,
-	TouchableOpacity,
-	View,
-	TextInput,
-	KeyboardAvoidingView,
-} from 'react-native';
+import { ScrollView, Text, View, KeyboardAvoidingView } from 'react-native';
 import { useNavigation } from '@react-navigation/core';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { db } from '../firebase-config';
 import JobCard from '../components/JobCard';
 import FAB from '../components/FAB';
 import globalStyles from '../assets/globalStyles';
 import { PAGES } from '../assets/constants';
+import setupAxios from '../helpers/axiosConfig';
+import useAuthStore from '../stores/authStore';
 
 const HomeScreen = () => {
 	const navigation = useNavigation();
 	const [serviceList, setServiceList] = React.useState([]);
+	const { token } = useAuthStore();
 
 	useEffect(() => {
-		const produtcsRef = db.collection('products');
-
-		const subscriber = produtcsRef.onSnapshot((querySnapshot) => {
-			const products = [];
-
-			querySnapshot.forEach((documentSnapshot) => {
-				products.push({
-					...documentSnapshot.data(),
-					key: documentSnapshot.id,
-				});
+		const axios = setupAxios(token);
+		try {
+			axios.get('/products').then((response) => {
+				setServiceList(response.data);
 			});
-
-			setServiceList(products);
-		});
-
-		return () => subscriber();
-	});
+		} catch (error) {
+			console.log('🚀 ~ getProducts ~ error', error);
+		}
+	}, [token]);
 
 	return (
 		<KeyboardAvoidingView
@@ -49,7 +34,7 @@ const HomeScreen = () => {
 
 				<ScrollView showsVerticalScrollIndicator={false}>
 					{serviceList.map((service) => (
-						<JobCard key={service.key} service={service} />
+						<JobCard key={service.id} service={service} />
 					))}
 				</ScrollView>
 
