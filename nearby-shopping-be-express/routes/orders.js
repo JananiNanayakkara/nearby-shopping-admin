@@ -4,15 +4,26 @@ const supabase = require('../config/database');
 
 // Create a new order
 router.post('/', async (req, res) => {
-	const { userId, productId, quantity } = req.body;
+	const { userId, productIds, status, total_price } = req.body;
 
 	try {
 		// Insert order into Supabase
 		const { data, error } = await supabase
 			.from('orders')
-			.insert([{ userId, productId, quantity }]);
+			.insert([{ status, total_price }]);
 
-		if (error) {
+		const orderId = data[0].id;
+
+		// Insert order items into Supabase
+		const orderItems = productIds.map((productId) => {
+			return { orderId, productId };
+		});
+
+		const { error: error2 } = await supabase
+			.from('order_products')
+			.insert(orderItems);
+
+		if (error || error2) {
 			return res.status(500).json({ error: 'Error creating order' });
 		}
 
@@ -38,6 +49,20 @@ router.get('/user/:userId', async (req, res) => {
 			return res.status(500).json({ error: 'Error retrieving orders' });
 		}
 
+		// Add order items to the response
+		for (const order of data) {
+			const { data: orderItems, error: orderItemsError } = await supabase
+				.from('order_products')
+				.select('productId')
+				.eq('orderId', order.id);
+
+			if (orderItemsError) {
+				return res.status(500).json({ error: 'Error retrieving order items' });
+			}
+
+			order.items = orderItems;
+		}
+
 		res.json(data);
 	} catch (error) {
 		console.error('Error retrieving orders:', error.message);
@@ -58,6 +83,20 @@ router.get('/product/:productId', async (req, res) => {
 
 		if (error) {
 			return res.status(500).json({ error: 'Error retrieving orders' });
+		}
+
+		// Add order items to the response
+		for (const order of data) {
+			const { data: orderItems, error: orderItemsError } = await supabase
+				.from('order_products')
+				.select('productId')
+				.eq('orderId', order.id);
+
+			if (orderItemsError) {
+				return res.status(500).json({ error: 'Error retrieving order items' });
+			}
+
+			order.items = orderItems;
 		}
 
 		res.json(data);
@@ -83,7 +122,29 @@ router.put('/:id', async (req, res) => {
 			return res.status(500).json({ error: 'Error updating order' });
 		}
 
-		res.json({ message: 'Order updated successfully' });
+		// Retrieve the updated order from Supabase
+		const { data: updatedOrder, error: updatedOrderError } = await supabase
+			.from('orders')
+			.select('*')
+			.eq('id', orderId);
+
+		if (updatedOrderError) {
+			return res.status(500).json({ error: 'Error retrieving updated order' });
+		}
+
+		// Add order items to the response
+		const { data: orderItems, error: orderItemsError } = await supabase
+			.from('order_products')
+			.select('productId')
+			.eq('orderId', orderId);
+
+		if (orderItemsError) {
+			return res.status(500).json({ error: 'Error retrieving order items' });
+		}
+
+		updatedOrder[0].items = orderItems;
+
+		res.json(updatedOrder[0]);
 	} catch (error) {
 		console.error('Error updating order:', error.message);
 		res.status(500).json({ error: 'Error updating order' });
@@ -100,6 +161,16 @@ router.delete('/:id', async (req, res) => {
 
 		if (error) {
 			return res.status(500).json({ error: 'Error deleting order' });
+		}
+
+		// Delete order items associated with the order
+		const { error: deleteItemsError } = await supabase
+			.from('order_products')
+			.delete()
+			.eq('orderId', orderId);
+
+		if (deleteItemsError) {
+			return res.status(500).json({ error: 'Error deleting order items' });
 		}
 
 		res.json({ message: 'Order deleted successfully' });

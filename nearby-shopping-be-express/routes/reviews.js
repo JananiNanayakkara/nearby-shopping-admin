@@ -4,14 +4,13 @@ const supabase = require('../config/database');
 
 // Create a new review
 router.post('/', async (req, res) => {
-	const { userId, productId, rating, review } = req.body;
+	const { userId, productId, rating, feedback } = req.body;
 
 	try {
 		// Insert review into Supabase
 		const { data, error } = await supabase
 			.from('reviews')
-			.insert([{ userId, productId, rating, review }]);
-
+			.insert([{ userId, productId, rating, feedback }]);
 		if (error) {
 			return res.status(500).json({ error: 'Error creating review' });
 		}
@@ -35,6 +34,7 @@ router.get('/product/:productId', async (req, res) => {
 			.eq('productId', productId);
 
 		if (error) {
+			console.log('🚀 ~ router.get ~ error:', error);
 			return res.status(500).json({ error: 'Error retrieving reviews' });
 		}
 
