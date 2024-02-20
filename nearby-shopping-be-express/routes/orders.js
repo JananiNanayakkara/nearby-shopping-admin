@@ -10,7 +10,8 @@ router.post('/', async (req, res) => {
 		// Insert order into Supabase
 		const { data, error } = await supabase
 			.from('orders')
-			.insert([{ status, total_price }]);
+			.insert([{ status, total_price, userId }])
+			.select();
 
 		const orderId = data[0].id;
 
