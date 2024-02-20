@@ -29,7 +29,9 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 
 	const { addToCart } = useCartStore();
 
-	React.useEffect(() => {
+	const axios = setupAxios(token);
+
+	useEffect(() => {
 		navigation.setOptions({
 			headerTitle: service.productName,
 			headerRight: () =>
