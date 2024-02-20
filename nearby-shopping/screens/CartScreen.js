@@ -11,15 +11,19 @@ import {
 import React, { useState } from 'react';
 import globalStyles from '../assets/globalStyles';
 import useCartStore from '../stores/cartStore';
-import JobCard from '../components/JobCard';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { COLORS, SIZES } from '../assets/theme';
 import { db, auth } from '../firebase-config';
 import { PAGES } from '../assets/constants';
+import useAuthStore from '../stores/authStore';
+import setupAxios from '../helpers/axiosConfig';
 
 const CartScreen = ({ navigation }) => {
 	const { cart, clearCart, removeFromCart } = useCartStore();
 	const [loading, setLoading] = useState(false);
+	const { id, token } = useAuthStore();
+
+	const axios = setupAxios(token);
 
 	const handlePlaceOrder = () => {
 		Alert.alert(
@@ -44,32 +48,27 @@ const CartScreen = ({ navigation }) => {
 		const order = {
 			products: products,
 			createdAt: new Date(),
-			uid: auth.currentUser.uid,
+			uid: id,
 			orderNumber: '',
 			status: 'pending',
 		};
 
-		const orders = db.collection('orders');
-
-		orders
-			.add(order)
-			.then(() => {
-				alert('Order placed successfully');
+		axios
+			.post('/orders', order)
+			.then((response) => {
+				setLoading(false);
+				clearCart();
+				navigation.navigate(PAGES.ORDER_DETAILS);
 			})
 			.catch((error) => {
-				console.log(error);
-			})
-			.finally(() => {
-				clearCart();
 				setLoading(false);
-				navigation.navigate(PAGES.HOME);
+				console.error('Error placing order: ', error);
 			});
 	};
 
 	const getProducts = () => {
 		const products = [];
 
-		console.log(cart);
 		cart.forEach((product) => {
 			if (products.find((p) => p.key === product.key)) {
 				const index = products.findIndex((p) => p.key === product.key);
