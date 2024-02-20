@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	StyleSheet,
 	Text,
@@ -13,11 +13,12 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Rating } from 'react-native-ratings';
-import { auth, db } from '../firebase-config';
 import { COLORS } from '../assets/theme';
 import globalStyles from '../assets/globalStyles';
 import useCartStore from '../stores/cartStore';
 import { PAGES } from '../assets/constants';
+import useAuthStore from '../stores/authStore';
+import setupAxios from '../helpers/axiosConfig';
 
 const ProductDetailsScreen = ({ route, navigation }) => {
 	const { service } = route.params;
@@ -27,6 +28,9 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 	const [reviews, setReviews] = useState([]);
 	const [showReviews, setShowReviews] = useState(false);
 
+	const [ratingSum, setRatingSum] = useState(0);
+
+	const { id, token } = useAuthStore();
 	const { addToCart } = useCartStore();
 
 	const axios = setupAxios(token);
@@ -35,7 +39,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 		navigation.setOptions({
 			headerTitle: service.productName,
 			headerRight: () =>
-				auth.currentUser.uid === service.uid && (
+				id === service.userId && (
 					<TouchableOpacity
 						style={{ marginRight: 10 }}
 						onPress={() => navigation.navigate(PAGES.ADD_PRODUCT, { service })}
@@ -46,48 +50,62 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 		});
 
 		setLoading(true);
-		const reviewsRef = db.collection('rating');
-		const subs = reviewsRef
-			.where('productId', '==', service.key)
-			.orderBy('createdAt', 'desc')
-			.limit(5)
-			.onSnapshot((snapshot) => {
-				const reviews = [];
-				snapshot.forEach((doc) => {
-					reviews.push(doc.data());
-				});
-				setReviews(reviews);
-				setLoading(false);
-			});
-
-		return () => subs();
+		loadReviews();
 	}, [navigation]);
 
-	handleRating = () => {
-		setLoading(true);
-		const ratingRef = db.collection('rating');
-		ratingRef
-			.add({
-				uid: auth.currentUser.uid,
-				rating: rating,
-				productId: service.key,
-				feedback: feedback,
-				createdAt: new Date(),
-			})
-			.then(() => {
-				alert('Feedback added');
-				setFeedback('');
-			})
-			.catch((error) => {
-				console.log(error);
-				alert('Error creating product');
-			})
-			.finally(() => {
-				setLoading(false);
-			});
+	const loadReviews = () => {
+		try {
+			axios
+				.get(`/reviews/product/${service.id}`)
+				.then((response) => {
+					const sum = response.data.reduce(
+						(acc, review) => acc + review.rating,
+						0
+					);
+					const ratingSum = sum / response.data.length;
+					setRatingSum(ratingSum);
+					setReviews(response.data);
+				})
+				.catch((error) => {
+					console.log(error);
+					alert('Error fetching reviews');
+				})
+				.finally(() => {
+					setLoading(false);
+				});
+		} catch (error) {
+			console.log('🚀 ~ loadReviews ~ error:', error);
+		}
 	};
 
-	handleDelete = () => {
+	const handleRating = () => {
+		setLoading(true);
+		try {
+			axios
+				.post('/reviews', {
+					productId: service.id,
+					rating,
+					feedback,
+					userId: id,
+				})
+				.then(() => {
+					loadReviews();
+					setFeedback('');
+					setRating(0);
+				})
+				.catch((error) => {
+					console.log(error);
+					alert('Error submitting review');
+				})
+				.finally(() => {
+					setLoading(false);
+				});
+		} catch (error) {
+			console.log('🚀 ~ handleRating ~ error:', error);
+		}
+	};
+
+	const handleDelete = () => {
 		Alert.alert(
 			'Delete Confirmation',
 			'Are you sure you want to delete this item?',
@@ -102,22 +120,25 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 		);
 	};
 
-	deleteProduct = () => {
+	const deleteProduct = () => {
 		setLoading(true);
-		const serviceRef = db.collection('products').doc(service.key);
-		serviceRef
-			.delete()
-			.then(() => {
-				alert('Product deleted');
-				navigation.goBack();
-			})
-			.catch((error) => {
-				console.log(error);
-				alert('Error deleting product');
-			})
-			.finally(() => {
-				setLoading(false);
-			});
+		try {
+			axios
+				.delete(`/products/${service.id}`)
+				.then(() => {
+					alert('Product deleted');
+					navigation.goBack();
+				})
+				.catch((error) => {
+					console.log(error);
+					alert('Error deleting product');
+				})
+				.finally(() => {
+					setLoading(false);
+				});
+		} catch (error) {
+			console.log('🚀 ~ deleteProduct ~ error:', error);
+		}
 	};
 
 	return (
@@ -125,7 +146,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 			<ScrollView style={globalStyles.container}>
 				<Text style={styles.title}>{service.productName}</Text>
 				<Text style={styles.description}>
-					Rating: {service?.rating?.toFixed(2) ?? 'No rating'}
+					Rating: {ratingSum?.toFixed(2) ?? 'No rating'}
 				</Text>
 				<Text style={styles.description} numberOfLines={15}>
 					{service.description}
@@ -165,7 +186,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 							<View key={index}>
 								<View style={styles.rateDetailsWrapper}>
 									<Text style={styles.description}>
-										{review.feedback === '' ? 'No feedback' : review.feedback}
+										{!review.feedback ? '-- No feedback --' : review.feedback}
 									</Text>
 
 									<Rating
@@ -180,7 +201,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 						))}
 				</View>
 
-				{auth.currentUser.uid !== service.uid && showReviews && (
+				{id !== service.userId && showReviews && (
 					<View>
 						<Rating
 							startingValue={4}
@@ -198,7 +219,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 					</View>
 				)}
 
-				{auth.currentUser.uid === service.uid && (
+				{id === service.userId && (
 					<View style={{ marginTop: 20 }}>
 						<TouchableOpacity
 							style={globalStyles.deleteButton}
