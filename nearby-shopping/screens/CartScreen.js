@@ -43,14 +43,13 @@ const CartScreen = ({ navigation }) => {
 	const placeOrder = () => {
 		setLoading(true);
 
-		const products = getProducts();
+		const productIds = getProducts();
 
 		const order = {
-			products: products,
-			createdAt: new Date(),
-			uid: id,
-			orderNumber: '',
+			products: productIds,
+			userId: id,
 			status: 'pending',
+			total_price: cart.reduce((acc, product) => acc + product.price, 0),
 		};
 
 		axios
