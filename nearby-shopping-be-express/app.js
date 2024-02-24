@@ -24,6 +24,10 @@ app.get('/', (req, res) => {
 	res.send('Welcome to nearby shopping API');
 });
 
+app.get('/verify-email', (req, res) => {
+	res.send('Email verified successfully');
+});
+
 // Start the server
 const PORT = 8080;
 app.listen(PORT, () => {

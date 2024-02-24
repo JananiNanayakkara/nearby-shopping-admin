@@ -43,46 +43,36 @@ const CartScreen = ({ navigation }) => {
 	const placeOrder = () => {
 		setLoading(true);
 
-		const products = getProducts();
+		try {
+			const productIds = getProducts();
+			console.log('🚀 ~ placeOrder ~ productIds:', productIds);
 
-		const order = {
-			products: products,
-			createdAt: new Date(),
-			uid: id,
-			orderNumber: '',
-			status: 'pending',
-		};
+			const order = {
+				productIds: productIds,
+				userId: id,
+				status: 'pending',
+				total_price: cart.reduce((acc, product) => acc + product.price, 0),
+			};
 
-		axios
-			.post('/orders', order)
-			.then((response) => {
-				setLoading(false);
-				clearCart();
-				navigation.navigate(PAGES.ORDER_DETAILS);
-			})
-			.catch((error) => {
-				setLoading(false);
-				console.error('Error placing order: ', error);
-			});
+			axios
+				.post('/orders', order)
+				.then((response) => {
+					setLoading(false);
+					clearCart();
+					navigation.navigate(PAGES.ORDER_HISTORY);
+				})
+				.catch((error) => {
+					setLoading(false);
+					console.log(error);
+				});
+		} catch (error) {
+			console.log('🚀 ~ placeOrder ~ error:', error);
+		}
 	};
 
 	const getProducts = () => {
-		const products = [];
-
-		cart.forEach((product) => {
-			if (products.find((p) => p.key === product.key)) {
-				const index = products.findIndex((p) => p.key === product.key);
-				products[index].quantity++;
-			} else {
-				products.push({
-					...product,
-					quantity: 1,
-					isShipped: false,
-				});
-			}
-		});
-
-		return products;
+		const productIds = cart.map((product) => product.id);
+		return productIds;
 	};
 
 	return (

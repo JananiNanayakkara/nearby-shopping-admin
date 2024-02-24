@@ -13,7 +13,12 @@ router.post('/register', async (req, res) => {
 		const { user, error } = await supabase.auth.signUp({
 			email,
 			password,
+			options: {
+				emailRedirectTo:
+					'https://nearby-shopping-be-express.fly.dev/verify-email',
+			},
 		});
+		console.log('🚀 ~ router.post ~ user:', user);
 
 		if (error) {
 			console.log('🚀 ~ router.post ~ error:', error);
