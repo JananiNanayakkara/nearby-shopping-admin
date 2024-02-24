@@ -3,13 +3,13 @@ import React from 'react';
 import { auth } from '../firebase-config';
 import globalStyles from '../assets/globalStyles';
 import { PAGES } from '../assets/constants';
+import useAuthStore from '../stores/authStore';
 
 const SettingsScreen = ({ navigation }) => {
+	const { logout } = useAuthStore();
 	const handleLogout = () => {
-		auth.signOut().then(() => {
-			console.log('Logged out');
-			navigation.replace(PAGES.LOGIN);
-		});
+		logout();
+		navigation.navigate(PAGES.LOGIN);
 	};
 
 	return (
