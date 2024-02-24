@@ -7,49 +7,54 @@ import {
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import globalStyles from '../assets/globalStyles';
-import { db, auth } from '../firebase-config';
+
 import { SIZES } from '../assets/theme';
+import useAuthStore from '../stores/authStore';
+import setupAxios from '../helpers/axiosConfig';
 
 const MyOrderHistoryScreen = () => {
 	const [loading, setLoading] = useState(false);
 	const [orders, setOrders] = useState([]);
+	const { id, token } = useAuthStore();
+
+	const axios = setupAxios(token);
 
 	useEffect(() => {
 		setLoading(true);
-		const ordersRef = db.collection('orders');
-		const sub = ordersRef
-			.where('uid', '==', auth.currentUser.uid)
-			.get()
-			.then((querySnapshot) => {
-				querySnapshot.forEach((doc) => {
-					setOrders([]);
-					setOrders((orders) => [
-						...orders,
-						{
-							...doc.data(),
-							products: doc.data().products,
-							createdAt: doc.data().createdAt,
-							totalPrice: calculateTotalPrice(doc.data().products),
-						},
-					]);
+		getOrdersByUser();
+	}, [token]);
+
+	const getOrdersByUser = async () => {
+		try {
+			const response = await axios.get(`/orders/user/${id}`);
+			const data = response.data;
+
+			const orders = data.map((order) => {
+				const products = order.items.data.map((product) => {
+					return {
+						productName: product.productName,
+						price: product.price,
+					};
 				});
-			})
-			.catch((error) => {
-				console.log(error);
-			})
-			.finally(() => {
-				setLoading(false);
+				return {
+					orderNumber: order.id,
+					status: order.status,
+					products: products,
+					totalPrice: calculateTotalPrice(order.items.data),
+				};
 			});
-
-		console.log(JSON.stringify(orders, null, 2));
-
-		return () => sub;
-	}, []);
+			setOrders(orders);
+			setLoading(false);
+		} catch (error) {
+			console.log(error);
+			setLoading(false);
+		}
+	};
 
 	const calculateTotalPrice = (products) => {
 		let total = 0;
 		products.forEach((product) => {
-			total += product.price * product.quantity;
+			total += product.price;
 		});
 		return total;
 	};
@@ -68,7 +73,7 @@ const MyOrderHistoryScreen = () => {
 						{order.products.map((product, index) => (
 							<View key={index}>
 								<Text style={globalStyles.label}>
-									{product.productName} x {product.quantity}
+									{product.productName} x 1
 								</Text>
 							</View>
 						))}
