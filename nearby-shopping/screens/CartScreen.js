@@ -43,12 +43,11 @@ const CartScreen = ({ navigation }) => {
 	const placeOrder = () => {
 		setLoading(true);
 
-		try {
-			const productIds = getProducts();
-			console.log('🚀 ~ placeOrder ~ productIds:', productIds);
+		const productIds = getProducts();
 
+		try {
 			const order = {
-				productIds: productIds,
+				products: productIds,
 				userId: id,
 				status: 'pending',
 				total_price: cart.reduce((acc, product) => acc + product.price, 0),

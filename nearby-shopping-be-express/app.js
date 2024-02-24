@@ -29,7 +29,7 @@ app.get('/verify-email', (req, res) => {
 });
 
 // Start the server
-const PORT = 8080;
+const PORT = 3000;
 app.listen(PORT, () => {
 	console.log(`Server is running on port ${PORT}`);
 });

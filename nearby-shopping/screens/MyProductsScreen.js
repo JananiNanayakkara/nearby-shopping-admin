@@ -1,32 +1,28 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { db, auth } from '../firebase-config';
 import JobCard from '../components/JobCard';
 import globalStyles from '../assets/globalStyles';
+import useAuthStore from '../stores/authStore';
+import setupAxios from '../helpers/axiosConfig';
 
 const MyProductsScreen = ({ navigation }) => {
 	const [products, setProducts] = useState([]);
+	const { id, token } = useAuthStore();
+	const axios = setupAxios(token);
 
 	useEffect(() => {
-		const subscriber = db
-			.collection('products')
-			.where('uid', '==', auth.currentUser.uid)
-			.onSnapshot((querySnapshot) => {
-				const products = [];
-
-				querySnapshot.forEach((documentSnapshot) => {
-					products.push({
-						...documentSnapshot.data(),
-						key: documentSnapshot.id,
-					});
-				});
-
-				setProducts(products);
-			});
-
-		console.log(products);
-		return () => subscriber();
+		loadProducts();
 	}, [navigation]);
+
+	const loadProducts = async () => {
+		try {
+			const response = await axios.get(`/products/user/${id}`);
+			const data = response.data;
+			setProducts(data);
+		} catch (error) {
+			console.log(error);
+		}
+	};
 
 	return (
 		<ScrollView
@@ -34,8 +30,8 @@ const MyProductsScreen = ({ navigation }) => {
 			style={styles.serviceContainer}
 		>
 			<Text style={globalStyles.titleText}>My Products</Text>
-			{products.map((service) => (
-				<JobCard key={service.key} service={service} />
+			{products.map((service, index) => (
+				<JobCard key={index} service={service} />
 			))}
 		</ScrollView>
 	);

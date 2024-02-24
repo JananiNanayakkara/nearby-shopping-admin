@@ -10,7 +10,8 @@ router.post('/', async (req, res) => {
 		// Insert order into Supabase
 		const { data, error } = await supabase
 			.from('orders')
-			.insert([{ status, total_price }]);
+			.insert([{ status, total_price, userId }])
+			.select();
 
 		const orderId = data[0].id;
 
@@ -51,6 +52,73 @@ router.get('/user/:userId', async (req, res) => {
 
 		// Add order items to the response
 		for (const order of data) {
+			const { data: orderIds, error: orderItemsError } = await supabase
+				.from('order_products')
+				.select('productId')
+				.eq('orderId', order.id);
+
+			if (orderItemsError) {
+				return res.status(500).json({ error: 'Error retrieving order items' });
+			}
+
+			const orderItems = await supabase
+				.from('products')
+				.select('*')
+				.in(
+					'id',
+					orderIds.map((item) => item.productId)
+				);
+
+			order.items = orderItems;
+		}
+
+		res.json(data);
+	} catch (error) {
+		console.error('Error retrieving orders:', error.message);
+		res.status(500).json({ error: 'Error retrieving orders' });
+	}
+});
+
+// Get all orders where user is the seller
+router.get('/seller/:userId', async (req, res) => {
+	const userId = req.params.userId;
+
+	try {
+		// Find orders where products has userId
+		const { data: products, error: productsError } = await supabase
+			.from('products')
+			.select('id')
+			.eq('userId', userId);
+
+		if (productsError) {
+			return res.status(500).json({ error: 'Error retrieving products' });
+		}
+
+		const productIds = products.map((product) => product.id);
+
+		// Retrieve all orders for a user from Supabase
+		const { data, error } = await supabase
+			.from('order_products')
+			.select('orderId')
+			.in('productId', productIds);
+
+		if (error) {
+			return res.status(500).json({ error: 'Error retrieving orders' });
+		}
+
+		const orderIds = data.map((order) => order.orderId);
+
+		const { data: orders, error: ordersError } = await supabase
+			.from('orders')
+			.select('*')
+			.in('id', orderIds);
+
+		if (ordersError) {
+			return res.status(500).json({ error: 'Error retrieving orders' });
+		}
+
+		// Add order items to the response
+		for (const order of orders) {
 			const { data: orderItems, error: orderItemsError } = await supabase
 				.from('order_products')
 				.select('productId')
@@ -63,7 +131,7 @@ router.get('/user/:userId', async (req, res) => {
 			order.items = orderItems;
 		}
 
-		res.json(data);
+		res.json(orders);
 	} catch (error) {
 		console.error('Error retrieving orders:', error.message);
 		res.status(500).json({ error: 'Error retrieving orders' });
