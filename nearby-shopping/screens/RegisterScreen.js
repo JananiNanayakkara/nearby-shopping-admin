@@ -7,6 +7,7 @@ import {
 	TextInput,
 	TouchableOpacity,
 	View,
+	Platform,
 } from 'react-native';
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/core';
@@ -16,14 +17,12 @@ import globalStyles from '../assets/globalStyles';
 import { PAGES } from '../assets/constants';
 import axios from 'axios';
 import { API_URL } from '../helpers/constants';
-import useAuthStore from '../stores/authStore';
 
 const RegisterScreen = () => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [confirmpassword, setConfirmPassword] = useState('');
 	const [loading, setLoading] = useState(false);
-	const { login, token } = useAuthStore();
 
 	const navigation = useNavigation();
 
@@ -44,7 +43,16 @@ const RegisterScreen = () => {
 				.then((response) => {
 					console.log('🚀 ~ .then ~ response:', response.data);
 					setLoading(false);
-					loginFn();
+
+					alert(
+						'Registration successful. Please check you email to verify your account.'
+					);
+
+					setEmail('');
+					setPassword('');
+					setConfirmPassword('');
+
+					navigation.navigate(PAGES.LOGIN);
 				})
 				.catch((error) => {
 					console.log('🚀 ~ handleRegister ~ error', error);
@@ -59,35 +67,10 @@ const RegisterScreen = () => {
 		navigation.navigate(PAGES.LOGIN);
 	};
 
-	const loginFn = () => {
-		Keyboard.dismiss();
-		setLoading(true);
-
-		try {
-			axios
-				.post(`${API_URL}/auth/login`, {
-					email: email,
-					password: password,
-				})
-				.then((response) => {
-					console.log('🚀 ~ .then ~ response:', response.data.token);
-					setLoading(false);
-					login(response.data.token, response.data.id, email);
-					navigation.replace('Root');
-				})
-				.catch((error) => {
-					console.log('🚀 ~ login ~ error', error);
-					setLoading(false);
-				});
-		} catch (error) {
-			console.log('🚀 ~ login ~ error:', error);
-		}
-	};
-
 	return (
 		<KeyboardAvoidingView
 			style={globalStyles.containerWrapper}
-			behavior="padding"
+			behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
 		>
 			<View style={globalStyles.container}>
 				<View style={styles.formContainer}>

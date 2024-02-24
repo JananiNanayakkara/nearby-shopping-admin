@@ -40,6 +40,28 @@ router.post('/', async (req, res) => {
 	}
 });
 
+// Get products by user ID
+router.get('/user/:userId', async (req, res) => {
+	const userId = req.params.userId;
+
+	try {
+		// Retrieve all products for a user from Supabase
+		const { data, error } = await supabase
+			.from('products')
+			.select('*')
+			.eq('userId', userId);
+
+		if (error) {
+			return res.status(500).json({ error: 'Error retrieving products' });
+		}
+
+		res.json(data);
+	} catch (error) {
+		console.error('Error retrieving products:', error.message);
+		res.status(500).json({ error: 'Error retrieving products' });
+	}
+});
+
 // Get all products
 router.get('/', async (req, res) => {
 	try {
