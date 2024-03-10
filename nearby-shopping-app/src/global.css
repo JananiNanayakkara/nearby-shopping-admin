@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.button {
+	@apply bg-indigo-500  py-4 px-4 rounded;
+}
+
+.button-text {
+	@apply text-white text-center font-bold;
+}
+
+.text-field {
+	@apply border border-gray-400 rounded py-2 px-4;
+}
+
+.text-field:focus {
+	@apply outline-none border-indigo-500;
+}
+
+.link {
+	@apply text-indigo-500 font-bold;
+}

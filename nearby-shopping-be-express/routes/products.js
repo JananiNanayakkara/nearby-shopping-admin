@@ -12,6 +12,7 @@ router.post('/', async (req, res) => {
 		location,
 		nearestCity,
 		userId,
+		type,
 	} = req.body;
 
 	try {
@@ -25,6 +26,7 @@ router.post('/', async (req, res) => {
 				location,
 				nearestCity,
 				userId,
+				type,
 			},
 		]);
 
