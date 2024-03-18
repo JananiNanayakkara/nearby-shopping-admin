@@ -19,7 +19,7 @@ const AddProduct = () => {
 	const [location, setLocation] = React.useState('');
 	const [price, setPrice] = React.useState('');
 	const [description, setDescription] = React.useState('');
-	const [inStock, setInStock] = React.useState(true);
+	const [isInStock, setInStock] = React.useState(true);
 	const [type, setType] = React.useState<ProductType>('Good');
 	const [loading, setLoading] = React.useState(false);
 	const [address, setAddress] = React.useState('');
@@ -83,9 +83,9 @@ const AddProduct = () => {
 				price: Number(price),
 				location,
 				type,
-				inStock,
+				isInStock,
 				nearestCity: address,
-				userid: user?.id,
+				userId: user?.id,
 			});
 			if (resp.data) {
 				setLoading(false);
@@ -216,7 +216,7 @@ const AddProduct = () => {
 					<View className="flex flex-row items-center">
 						<Text className="text-lg">In Stock</Text>
 						<Switch
-							value={inStock}
+							value={isInStock}
 							onValueChange={(status) => setInStock(status)}
 						/>
 					</View>

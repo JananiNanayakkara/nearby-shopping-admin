@@ -69,7 +69,7 @@ router.get('/user/:userId', async (req, res) => {
 					orderIds.map((item) => item.productId)
 				);
 
-			order.items = orderItems;
+			order.items = orderItems.data;
 		}
 
 		res.json(data);
@@ -82,12 +82,11 @@ router.get('/user/:userId', async (req, res) => {
 // Get all orders where user is the seller
 router.get('/seller/:userId', async (req, res) => {
 	const userId = req.params.userId;
-
 	try {
 		// Find orders where products has userId
 		const { data: products, error: productsError } = await supabase
 			.from('products')
-			.select('id')
+			.select('*')
 			.eq('userId', userId);
 
 		if (productsError) {
@@ -107,7 +106,6 @@ router.get('/seller/:userId', async (req, res) => {
 		}
 
 		const orderIds = data.map((order) => order.orderId);
-
 		const { data: orders, error: ordersError } = await supabase
 			.from('orders')
 			.select('*')
@@ -128,7 +126,9 @@ router.get('/seller/:userId', async (req, res) => {
 				return res.status(500).json({ error: 'Error retrieving order items' });
 			}
 
-			order.items = orderItems;
+			order.items = products.filter((product) =>
+				orderItems.find((item) => item.productId === product.id)
+			);
 		}
 
 		res.json(orders);
@@ -245,6 +245,51 @@ router.delete('/:id', async (req, res) => {
 	} catch (error) {
 		console.error('Error deleting order:', error.message);
 		res.status(500).json({ error: 'Error deleting order' });
+	}
+});
+
+// Update order status by ID
+router.put('/:id/status', async (req, res) => {
+	const orderId = req.params.id;
+	const { status } = req.body;
+
+	try {
+		// Update order status in Supabase
+		const { data, error } = await supabase
+			.from('orders')
+			.update({ status })
+			.eq('id', orderId);
+
+		if (error || !data) {
+			return res.status(500).json({ error: 'Error updating order status' });
+		}
+
+		// Retrieve the updated order from Supabase
+		const { data: updatedOrder, error: updatedOrderError } = await supabase
+			.from('orders')
+			.select('*')
+			.eq('id', orderId);
+
+		if (updatedOrderError) {
+			return res.status(500).json({ error: 'Error retrieving updated order' });
+		}
+
+		// Add order items to the response
+		const { data: orderItems, error: orderItemsError } = await supabase
+			.from('order_products')
+			.select('productId')
+			.eq('orderId', orderId);
+
+		if (orderItemsError) {
+			return res.status(500).json({ error: 'Error retrieving order items' });
+		}
+
+		updatedOrder[0].items = orderItems;
+
+		res.json(updatedOrder[0]);
+	} catch (error) {
+		console.error('Error updating order status:', error.message);
+		res.status(500).json({ error: 'Error updating order status' });
 	}
 });
 

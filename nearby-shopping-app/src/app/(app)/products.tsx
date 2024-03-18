@@ -4,6 +4,7 @@ import {
 	TextInput,
 	ScrollView,
 	TouchableOpacity,
+	RefreshControl,
 } from 'react-native';
 import * as React from 'react';
 import { StatusBar } from 'expo-status-bar';
@@ -11,11 +12,17 @@ import { StatusBar } from 'expo-status-bar';
 import { useProductStore } from '../../stores/productStore';
 import { useRouter } from 'expo-router';
 import Fab from '../../components/FAB';
+import getAxios from '../../utils/axiosConfig';
+import { useAuth } from '../../context/auth';
+import Loader from '../../components/Loader';
 
 const products = () => {
-	const { products, setSelectedProduct } = useProductStore();
+	const { products, setSelectedProduct, resetProducts, addProduct } =
+		useProductStore();
 	const router = useRouter();
 	const [filteredProducts, setFilteredProducts] = React.useState(products);
+	const { user } = useAuth();
+	const [loading, setLoading] = React.useState(false);
 
 	const searchProduct = (text: string) => {
 		const _text = text.trim();
@@ -41,7 +48,26 @@ const products = () => {
 		}
 	};
 
-	return (
+	React.useEffect(() => {
+		getProducts();
+	}, []);
+
+	async function getProducts() {
+		setLoading(true);
+		try {
+			const resp = await getAxios(user?.token ?? '').get('/products');
+			resetProducts();
+			resp.data.forEach((product) => {
+				addProduct(product);
+			});
+		} catch (error) {
+			console.log('🚀 ~ error:', error);
+		} finally {
+			setLoading(false);
+		}
+	}
+
+	return !loading ? (
 		<View className="flex-1 px-8">
 			<StatusBar style="dark" />
 			<TextInput
@@ -53,6 +79,14 @@ const products = () => {
 			<Fab />
 
 			<ScrollView
+				refreshControl={
+					<RefreshControl
+						refreshing={false}
+						onRefresh={() => {
+							getProducts();
+						}}
+					/>
+				}
 				contentContainerStyle={{
 					top: 100,
 				}}
@@ -65,7 +99,7 @@ const products = () => {
 							router.push('/product-details');
 						}}
 					>
-						<View className="bg-white border border-indigo-400 rounded-lg p-4 my-4">
+						<View className="bg-white border border-indigo-400 rounded-lg p-4 my-2">
 							<Text className="text-2xl font-bold">{product.productName}</Text>
 							<Text className="text-lg">{product.description}</Text>
 							<Text className="text-lg">Price: {product.price}</Text>
@@ -74,6 +108,8 @@ const products = () => {
 				))}
 			</ScrollView>
 		</View>
+	) : (
+		<Loader />
 	);
 };
 

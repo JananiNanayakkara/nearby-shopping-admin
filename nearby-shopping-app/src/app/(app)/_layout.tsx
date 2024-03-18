@@ -1,5 +1,5 @@
 import '../../global.css';
-import { Stack, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import useCartStore from '../../stores/cartStore';
 
@@ -19,10 +19,11 @@ export default function Layout() {
 			<Tabs.Screen
 				name="map"
 				options={{
-					title: 'Nearby Shopping',
+					title: 'Map',
 					tabBarIcon: () => (
 						<Ionicons name="map-sharp" size={28} color="#6366f1" />
 					),
+					headerTitle: 'Nearby Shopping - Products Map',
 				}}
 			></Tabs.Screen>
 			<Tabs.Screen
@@ -32,6 +33,7 @@ export default function Layout() {
 					tabBarIcon: () => (
 						<Ionicons name="pricetags" size={28} color="#6366f1" />
 					),
+					headerTitle: 'Nearby Shopping - Products List',
 				}}
 			></Tabs.Screen>
 			<Tabs.Screen
@@ -40,6 +42,7 @@ export default function Layout() {
 					title: 'Cart',
 					tabBarIcon: () => <Ionicons name="cart" size={28} color="#6366f1" />,
 					tabBarBadge: items,
+					headerTitle: 'Nearby Shopping - Cart',
 				}}
 			></Tabs.Screen>
 			<Tabs.Screen

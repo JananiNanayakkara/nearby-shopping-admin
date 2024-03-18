@@ -4,18 +4,62 @@ import {
 	ScrollView,
 	TouchableOpacity,
 	Pressable,
+	Alert,
 } from 'react-native';
 import React from 'react';
 import useCartStore from '../../stores/cartStore';
+import getAxios from '../../utils/axiosConfig';
+import { useAuth } from '../../context/auth';
+import Loader from '../../components/Loader';
 
 const cart = () => {
-	const { cart, removeFromCart } = useCartStore();
+	const [loading, setLoading] = React.useState(false);
+	const { cart, removeFromCart, clearCart } = useCartStore();
+	const { user } = useAuth();
 
 	const onCheckout = () => {
-		alert('Checkout successful');
+		Alert.alert(
+			'Are you sure you want to checkout?',
+			'You will be charged for the total amount',
+			[
+				{
+					text: 'Cancel',
+					onPress: () => console.log('Cancel Pressed'),
+					style: 'cancel',
+				},
+				{ text: 'OK', onPress: () => checkout() },
+			],
+			{ cancelable: false }
+		);
 	};
 
-	return (
+	const checkout = async () => {
+		try {
+			setLoading(true);
+			const productIds = cart.map((product) => product.id);
+			const req = {
+				productIds,
+				userId: user.id,
+				status: 'pending',
+				total_price: cart.reduce((acc, product) => acc + product.price, 0),
+			};
+
+			const resp = await getAxios(user?.token ?? '').post('/orders', req);
+
+			if (resp.status === 201) {
+				alert('Checkout successful');
+				clearCart();
+			} else {
+				alert('Checkout failed');
+			}
+		} catch (error) {
+			console.log('🚀 ~ checkout ~ error:', JSON.stringify(error));
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	return !loading ? (
 		<ScrollView
 			contentContainerStyle={{
 				flex: 1,
@@ -53,6 +97,8 @@ const cart = () => {
 				</TouchableOpacity>
 			</View>
 		</ScrollView>
+	) : (
+		<Loader />
 	);
 };
 

@@ -91,18 +91,28 @@ const map = () => {
 	];
 
 	React.useEffect(() => {
+		getProducts();
 		(async () => {
-			try {
-				const resp = await getAxios(user?.token ?? '').get('/products');
-				resetProducts();
-				resp.data.forEach((product) => {
-					addProduct(product);
-				});
-			} catch (error) {
-				console.log('🚀 ~ error:', error);
-			}
+			const intervalId = setInterval(() => {
+				getProducts();
+			}, 300000); // 300000 ms = 5 minutes
+
+			// Clear interval on component unmount
+			return () => clearInterval(intervalId);
 		})();
 	}, []);
+
+	async function getProducts() {
+		try {
+			const resp = await getAxios(user?.token ?? '').get('/products');
+			resetProducts();
+			resp.data.forEach((product) => {
+				addProduct(product);
+			});
+		} catch (error) {
+			console.log('🚀 ~ error:', error);
+		}
+	}
 
 	React.useEffect(() => {
 		(async () => {

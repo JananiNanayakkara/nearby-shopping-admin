@@ -1,11 +1,65 @@
-import { View, Text } from 'react-native';
-import React from 'react';
+import { View, Text, ScrollView } from 'react-native';
+import * as React from 'react';
+import { useAuth } from '../../../context/auth';
+import getAxios from '../../../utils/axiosConfig';
+import Moment from 'moment';
+import Loader from '../../../components/Loader';
 
 const OrderHistory = () => {
-	return (
-		<View>
-			<Text>OrderHistory</Text>
+	const { user } = useAuth();
+	const [orders, setOrders] = React.useState([]);
+	const [loading, setLoading] = React.useState(true);
+
+	React.useEffect(() => {
+		const fetchData = async () => {
+			if (user) {
+				setLoading(true);
+				try {
+					const _orders = await getAxios(user.token ?? '').get(
+						`/orders/user/${user.id}`
+					);
+
+					console.log(
+						'🚀 ~ fetchData ~ _orders:',
+						JSON.stringify(_orders.data)
+					);
+					setOrders(_orders.data);
+				} catch (error) {
+					console.log('🚀 ~ fetchData ~ error:', error);
+				} finally {
+					setLoading(false);
+				}
+			}
+		};
+
+		fetchData();
+	}, []);
+
+	return !loading ? (
+		<View
+			style={{
+				flex: 1,
+				padding: 20,
+			}}
+		>
+			<ScrollView showsVerticalScrollIndicator={false}>
+				{orders.map((order) => (
+					<View key={order.id} className="my-2 border-b-2 pb-2">
+						<Text className="text-lg font-bold">Order ID: {order.id}</Text>
+						<Text className="text-lg font-bold">
+							Order Status: {order.status}
+						</Text>
+						<Text>
+							Order Date: {Moment(order.createdAt).format('MMMM Do YYYY')}
+						</Text>
+						<Text>Order Total: {order.total_price.toFixed(2)}</Text>
+						<Text># items: {order.items.length}</Text>
+					</View>
+				))}
+			</ScrollView>
 		</View>
+	) : (
+		<Loader />
 	);
 };
 

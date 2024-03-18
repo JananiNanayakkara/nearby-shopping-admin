@@ -9,4 +9,5 @@ interface ProductData {
 	productName: string;
 	type: string;
 	userId?: string | null;
+	rating: number;
 }
