@@ -1,9 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
-
 const authRouter = require('./routes/auth');
 const productRouter = require('./routes/products');
 const reviewRouter = require('./routes/reviews');
@@ -33,8 +30,6 @@ app.use('/auth', authRouter);
 app.use('/products', productRouter);
 app.use('/reviews', reviewRouter);
 app.use('/orders', orderRouter);
-
-// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get('/', (req, res) => {
 	res.send('Welcome to nearby shopping API');

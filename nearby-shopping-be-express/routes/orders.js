@@ -293,4 +293,35 @@ router.put('/:id/status', async (req, res) => {
 	}
 });
 
+// Get all orders
+router.get('/', async (req, res) => {
+	try {
+		// Retrieve all orders from Supabase
+		const { data, error } = await supabase.from('orders').select('*');
+
+		if (error) {
+			return res.status(500).json({ error: 'Error retrieving orders' });
+		}
+
+		// Add order items to the response
+		for (const order of data) {
+			const { data: orderItems, error: orderItemsError } = await supabase
+				.from('order_products')
+				.select('productId')
+				.eq('orderId', order.id);
+
+			if (orderItemsError) {
+				return res.status(500).json({ error: 'Error retrieving order items' });
+			}
+
+			order.items = orderItems;
+		}
+
+		res.json(data);
+	} catch (error) {
+		console.error('Error retrieving orders:', error.message);
+		res.status(500).json({ error: 'Error retrieving orders' });
+	}
+});
+
 module.exports = router;

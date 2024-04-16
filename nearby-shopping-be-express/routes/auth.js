@@ -18,7 +18,22 @@ router.post('/register', async (req, res) => {
 					'https://nearby-shopping-be-express.fly.dev/verify-email',
 			},
 		});
+
 		console.log('🚀 ~ router.post ~ user:', user);
+
+		if (user) {
+			const { data, error } = await supabase
+				.from('users')
+				.insert([{ id: user.id, email }])
+				.select();
+
+			console.log('🚀 ~ router.post ~ data:', data);
+
+			if (error) {
+				console.log('🚀 ~ router.post ~ error:', error);
+				return res.status(500).json({ error: 'Error registering user' });
+			}
+		}
 
 		if (error) {
 			console.log('🚀 ~ router.post ~ error:', error);
@@ -44,6 +59,47 @@ router.post('/login', async (req, res) => {
 		});
 
 		const { user, session } = data;
+		if (error || !session) {
+			return res.status(401).json({ error: 'Invalid credentials' });
+		}
+
+		const token = session.access_token;
+		const { id } = user;
+
+		res.json({ id, email, token });
+	} catch (error) {
+		console.error('Error logging in:', error.message);
+		res.status(500).json({ error: 'Error logging in' });
+	}
+});
+
+router.post('admin-login', async (req, res) => {
+	const { email, password } = req.body;
+
+	try {
+		// Login user with Supabase
+		const { data, error } = await supabase.auth.signInWithPassword({
+			email,
+			password,
+		});
+
+		const { user, session } = data;
+
+		if (user) {
+			const { data, error } = await supabase
+				.from('users')
+				.select()
+				.eq('user_id', user.id);
+
+			if (data[0].role !== 'admin') {
+				return res.status(401).json({ error: 'Invalid credentials' });
+			}
+
+			if (error || !data) {
+				return res.status(401).json({ error: 'Invalid credentials' });
+			}
+		}
+
 		if (error || !session) {
 			return res.status(401).json({ error: 'Invalid credentials' });
 		}
