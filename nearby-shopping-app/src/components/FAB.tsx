@@ -1,10 +1,13 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';
+import { useProductStore } from '../stores/productStore';
 
 const Fab = () => {
 	const router = useRouter();
+	const { setSelectedProduct } = useProductStore();
 	const onFabPress = () => {
+		setSelectedProduct(null);
 		router.push('/add-product');
 	};
 

@@ -13,6 +13,7 @@ router.post('/', async (req, res) => {
 		nearestCity,
 		userId,
 		type,
+		phone,
 	} = req.body;
 
 	try {
@@ -27,6 +28,7 @@ router.post('/', async (req, res) => {
 				nearestCity,
 				userId,
 				type,
+				phone,
 			},
 		]);
 
@@ -107,8 +109,17 @@ router.get('/:id', async (req, res) => {
 // Update product by ID
 router.put('/:id', async (req, res) => {
 	const productId = req.params.id;
-	const { productName, description, price, isInStock, location, nearestCity } =
-		req.body;
+	const {
+		productName,
+		description,
+		price,
+		isInStock,
+		location,
+		nearestCity,
+		userId,
+		type,
+		phone,
+	} = req.body;
 
 	try {
 		// Update product in Supabase
@@ -121,10 +132,14 @@ router.put('/:id', async (req, res) => {
 				isInStock,
 				location,
 				nearestCity,
+				userId,
+				type,
+				phone,
 			})
 			.eq('id', productId);
 
-		if (error || !data) {
+		if (error) {
+			console.log('🚀 ~ router.put ~ error:', error);
 			return res.status(500).json({ error: 'Error updating product' });
 		}
 

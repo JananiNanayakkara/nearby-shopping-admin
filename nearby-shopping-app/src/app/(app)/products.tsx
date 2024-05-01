@@ -10,7 +10,7 @@ import * as React from 'react';
 import { StatusBar } from 'expo-status-bar';
 
 import { useProductStore } from '../../stores/productStore';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import Fab from '../../components/FAB';
 import getAxios from '../../utils/axiosConfig';
 import { useAuth } from '../../context/auth';
@@ -20,7 +20,7 @@ const products = () => {
 	const { products, setSelectedProduct, resetProducts, addProduct } =
 		useProductStore();
 	const router = useRouter();
-	const [filteredProducts, setFilteredProducts] = React.useState(products);
+	const [filteredProducts, setFilteredProducts] = React.useState(null);
 	const { user } = useAuth();
 	const [loading, setLoading] = React.useState(false);
 
@@ -48,18 +48,26 @@ const products = () => {
 		}
 	};
 
-	React.useEffect(() => {
-		getProducts();
-	}, []);
+	useFocusEffect(
+		React.useCallback(() => {
+			getProducts();
+		}, [])
+	);
 
 	async function getProducts() {
 		setLoading(true);
 		try {
-			const resp = await getAxios(user?.token ?? '').get('/products');
-			resetProducts();
-			resp.data.forEach((product) => {
-				addProduct(product);
-			});
+			const { data } = await getAxios(user?.token ?? '').get('/products');
+
+			if (data) {
+				console.log('🚀 ~ getProducts ~ data:', data);
+				resetProducts();
+				data.forEach((product) => {
+					addProduct(product);
+				});
+			}
+
+			setFilteredProducts(products);
 		} catch (error) {
 			console.log('🚀 ~ error:', error);
 		} finally {
@@ -89,9 +97,11 @@ const products = () => {
 				}
 				contentContainerStyle={{
 					top: 100,
+					paddingBottom: 100,
 				}}
+				showsVerticalScrollIndicator={false}
 			>
-				{filteredProducts.map((product, index) => (
+				{filteredProducts?.map((product, index) => (
 					<TouchableOpacity
 						key={index}
 						onPress={() => {
@@ -101,8 +111,29 @@ const products = () => {
 					>
 						<View className="bg-white border border-indigo-400 rounded-lg p-4 my-2">
 							<Text className="text-2xl font-bold">{product.productName}</Text>
-							<Text className="text-lg">{product.description}</Text>
-							<Text className="text-lg">Price: {product.price}</Text>
+							<Text className="text-lg text-gray-400">
+								{product.description}
+							</Text>
+							<View className="flex flex-row gap-2 items-center">
+								<Text className="text-lg">
+									{'💰'} Rs: {product.price.toFixed(2)}
+								</Text>
+							</View>
+							<View className="flex flex-row gap-2 items-center">
+								<Text className="text-lg">
+									{'📍'} {product.nearestCity}
+								</Text>
+							</View>
+							<View className="flex flex-row gap-2 items-center">
+								<Text className="text-lg">
+									{'📞'} {product.phone ?? 'No Phone number ☹️'}
+								</Text>
+							</View>
+							{product.isInStock ? null : (
+								<Text className="text-sm text-red-500">
+									This product is out of stock. Please check back later.
+								</Text>
+							)}
 						</View>
 					</TouchableOpacity>
 				))}

@@ -25,7 +25,7 @@ const OrderHistory = () => {
 					);
 					setOrders(_orders.data);
 				} catch (error) {
-					console.log('🚀 ~ fetchData ~ error:', error);
+					console.log('🚀 ~ fetchData ~ error:', JSON.stringify(error));
 				} finally {
 					setLoading(false);
 				}
@@ -44,7 +44,7 @@ const OrderHistory = () => {
 		>
 			<ScrollView showsVerticalScrollIndicator={false}>
 				{orders.map((order) => (
-					<View key={order.id} className="my-2 border-b-2 pb-2">
+					<View key={order.id} className="my-2 p-8 bg-white">
 						<Text className="text-lg font-bold">Order ID: {order.id}</Text>
 						<Text className="text-lg font-bold">
 							Order Status: {order.status}
@@ -54,6 +54,18 @@ const OrderHistory = () => {
 						</Text>
 						<Text>Order Total: {order.total_price.toFixed(2)}</Text>
 						<Text># items: {order.items.length}</Text>
+
+						<View className="border-t-2 mt-2 border-gray-200">
+							{order.items.map((item) => (
+								<View key={item.id} className="py-2 border-b-2 border-gray-200">
+									<Text className="text-lg font-bold">{item.productName}</Text>
+									<Text>Price: {item.price.toFixed(2)}</Text>
+									<Text>Quantity: {item.quantity}</Text>
+									<Text>Phone: {item.phone ?? '-'}</Text>
+									<Text>Address: {item.nearestCity ?? '-'}</Text>
+								</View>
+							))}
+						</View>
 					</View>
 				))}
 			</ScrollView>

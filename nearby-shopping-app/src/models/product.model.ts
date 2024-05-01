@@ -4,6 +4,7 @@ interface ProductData {
 	id?: number;
 	isInStock: boolean | null;
 	location: string;
+	phone: string;
 	nearestCity: string;
 	price: number;
 	productName: string;

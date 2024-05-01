@@ -1,25 +1,17 @@
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const authRouter = require('./routes/auth');
 const productRouter = require('./routes/products');
 const reviewRouter = require('./routes/reviews');
 const orderRouter = require('./routes/orders');
+const userRouter = require('./routes/users');
 
 const verifyToken = require('./middleware/authMiddleware');
 
 const app = express();
-
-const swaggerOptions = {
-	definition: {
-		openapi: '3.0.0',
-		info: {
-			title: 'Express API with Swagger',
-			version: '1.0.0',
-		},
-	},
-	apis: ['./routes/*.js'], // files containing annotations as above
-};
+app.use(cors());
 
 // Middleware
 app.use(bodyParser.json());
@@ -30,6 +22,7 @@ app.use('/auth', authRouter);
 app.use('/products', productRouter);
 app.use('/reviews', reviewRouter);
 app.use('/orders', orderRouter);
+app.use('/user', userRouter);
 
 app.get('/', (req, res) => {
 	res.send('Welcome to nearby shopping API');

@@ -15,10 +15,20 @@ const register = () => {
 	const [email, setEmail] = React.useState('');
 	const [password, setPassword] = React.useState('');
 	const [confirmPassword, setConfirmPassword] = React.useState('');
+
+	const [address, setAddress] = React.useState('');
+	const [phone, setPhone] = React.useState('');
+
 	const [loading, setLoading] = React.useState(false);
 
 	const registerFn = async () => {
 		setLoading(true);
+
+		if (!email || !password || !confirmPassword || !address || !phone) {
+			setLoading(false);
+			alert('Please fill all fields');
+			return;
+		}
 
 		if (password !== confirmPassword) {
 			setLoading(false);
@@ -30,7 +40,12 @@ const register = () => {
 			const resp = await getAxios(user?.token ?? '').post('/auth/register', {
 				email,
 				password,
+				address,
+				phone,
 			});
+
+			console.log('🚀 ~ resp ~ resp:', JSON.stringify(resp));
+
 			if (resp.data) {
 				alert(
 					'Registration successful. Please check your email to verify your account.'
@@ -40,6 +55,7 @@ const register = () => {
 				router.navigate('login');
 			}
 		} catch (error) {
+			console.log('🚀 ~ registerFn ~ error:', JSON.stringify(error));
 			if (error?.response?.data?.error) {
 				setLoading(false);
 				alert(error.response.data.error);
@@ -80,6 +96,20 @@ const register = () => {
 				onChangeText={setConfirmPassword}
 				placeholder="Confirm Password"
 				secureTextEntry
+			/>
+
+			<TextInput
+				className="text-field my-2"
+				value={address}
+				onChangeText={setAddress}
+				placeholder="Enter your address"
+			/>
+
+			<TextInput
+				className="text-field my-2"
+				value={phone}
+				onChangeText={setPhone}
+				placeholder="Enter your phone number"
 			/>
 
 			<Pressable className="button my-2" onPress={() => registerFn()}>

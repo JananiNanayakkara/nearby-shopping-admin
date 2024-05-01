@@ -7,7 +7,7 @@ import { useAuth } from '../../context/auth';
 import * as Location from 'expo-location';
 import { useProductStore } from '../../stores/productStore';
 
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import Fab from '../../components/FAB';
 
 const map = () => {
@@ -90,17 +90,11 @@ const map = () => {
 		},
 	];
 
-	React.useEffect(() => {
-		getProducts();
-		(async () => {
-			const intervalId = setInterval(() => {
-				getProducts();
-			}, 300000); // 300000 ms = 5 minutes
-
-			// Clear interval on component unmount
-			return () => clearInterval(intervalId);
-		})();
-	}, []);
+	useFocusEffect(
+		React.useCallback(() => {
+			getProducts();
+		}, [])
+	);
 
 	async function getProducts() {
 		try {

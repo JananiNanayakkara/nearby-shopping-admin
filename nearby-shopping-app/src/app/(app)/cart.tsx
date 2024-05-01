@@ -36,12 +36,17 @@ const cart = () => {
 	const checkout = async () => {
 		try {
 			setLoading(true);
-			const productIds = cart.map((product) => product.id);
+			const productIds = cart.map((cartItem) => {
+				return { productId: cartItem.product.id, qty: cartItem.qty };
+			});
 			const req = {
 				productIds,
 				userId: user.id,
 				status: 'pending',
-				total_price: cart.reduce((acc, product) => acc + product.price, 0),
+				total_price: cart.reduce(
+					(acc, cartItem) => acc + cartItem.product.price * cartItem.qty,
+					0
+				),
 			};
 
 			const resp = await getAxios(user?.token ?? '').post('/orders', req);
@@ -68,11 +73,16 @@ const cart = () => {
 			}}
 		>
 			<ScrollView showsVerticalScrollIndicator={false}>
-				{cart.map((product, index) => (
+				{cart.map((cartItem, index) => (
 					<View className="my-2 border-b-2 border-indigo-400" key={index}>
-						<Text className="text-2xl font-bold">{product.productName}</Text>
-						<Text className="text-lg">{product.description}</Text>
-						<Text className="text-lg">Price: {product.price}</Text>
+						<Text className="text-2xl font-bold">
+							{cartItem.product.productName}
+						</Text>
+						<Text className="text-lg">{cartItem.product.description}</Text>
+						<Text className="text-lg">
+							Price: {cartItem.product.price.toFixed(2)}
+						</Text>
+						<Text className="text-lg">Quantity: {cartItem.qty}</Text>
 
 						<Pressable
 							className="py-2"
@@ -89,7 +99,13 @@ const cart = () => {
 
 			<View>
 				<Text className="text-2xl font-bold my-4">
-					Total: {cart.reduce((acc, cur) => acc + cur.price, 0)}
+					Total:{' '}
+					{cart
+						.reduce(
+							(acc, cartItem) => acc + cartItem.product.price * cartItem.qty,
+							0
+						)
+						.toFixed(2)}
 				</Text>
 
 				<TouchableOpacity className="button" onPress={onCheckout}>

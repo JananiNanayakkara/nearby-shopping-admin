@@ -18,6 +18,22 @@ const settings = () => {
 				<View>
 					<Text className="text-xl mb-4">hello, {user?.email}</Text>
 
+					<View className="h-0.5 bg-gray-300 my-4"></View>
+
+					<TouchableOpacity
+						className="bg-gray-200 py-4 px-4"
+						onPress={() => {
+							router.push('/account-settings');
+						}}
+					>
+						<View className="w-full flex flex-row items-center justify-between">
+							<Text className="text-gray-700 text-lg">Account</Text>
+							<Ionicons name="chevron-forward" size={24} color="black" />
+						</View>
+					</TouchableOpacity>
+
+					<View className="h-0.5 bg-gray-300 my-4"></View>
+
 					<TouchableOpacity
 						className="bg-gray-200 py-4 px-4"
 						onPress={() => {
@@ -30,7 +46,7 @@ const settings = () => {
 						</View>
 					</TouchableOpacity>
 					<TouchableOpacity
-						className="bg-gray-200 py-4 px-4 mt-2"
+						className="bg-gray-200 py-4 px-4 mt-4"
 						onPress={() => {
 							router.push('/order-request');
 						}}
