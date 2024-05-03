@@ -61,8 +61,8 @@ const OrderHistory = () => {
 									<Text className="text-lg font-bold">{item.productName}</Text>
 									<Text>Price: {item.price.toFixed(2)}</Text>
 									<Text>Quantity: {item.quantity}</Text>
-									<Text>Phone: {item.phone ?? '-'}</Text>
-									<Text>Address: {item.nearestCity ?? '-'}</Text>
+									<Text>Phone (seller): {item.phone ?? '-'}</Text>
+									<Text>Address (seller): {item.nearestCity ?? '-'}</Text>
 								</View>
 							))}
 						</View>

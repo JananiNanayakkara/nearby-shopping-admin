@@ -48,10 +48,12 @@ export default function Layout() {
 			<Tabs.Screen
 				name="(settings)"
 				options={{
-					title: 'Settings',
+					title: 'Profile',
 					headerShown: false,
 					href: '(settings)/settings',
-					tabBarIcon: () => <Ionicons name="cog" size={28} color="#6366f1" />,
+					tabBarIcon: () => (
+						<Ionicons name="person-circle-sharp" size={28} color="#6366f1" />
+					),
 				}}
 			></Tabs.Screen>
 			<Tabs.Screen

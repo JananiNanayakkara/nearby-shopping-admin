@@ -69,10 +69,10 @@ const AccountSettings = () => {
 					</View>
 
 					<View className="flex gap-2">
-						<Text className="text-lg">Username</Text>
+						<Text className="text-lg">Name</Text>
 						<TextInput
 							className="text-field"
-							placeholder="Username"
+							placeholder="Name"
 							value={username}
 							onChangeText={setUsername}
 						/>

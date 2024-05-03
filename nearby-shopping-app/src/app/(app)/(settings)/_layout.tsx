@@ -5,7 +5,7 @@ export default function SettingsLayout() {
 		<Stack
 			initialRouteName="settings"
 			screenOptions={{
-				title: 'Settings',
+				title: 'Profile',
 			}}
 		>
 			<Stack.Screen
