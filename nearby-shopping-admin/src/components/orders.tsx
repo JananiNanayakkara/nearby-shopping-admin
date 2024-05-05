@@ -14,7 +14,7 @@ import {
 import { Button } from './ui/button';
 import { CircleBackslashIcon } from '@radix-ui/react-icons';
 
-export default function Orders() {
+export default function Orders({ isPrinting }: { isPrinting?: boolean }) {
 	const [orders, setOrders] = React.useState([]);
 	const [loading, setLoading] = React.useState(true);
 
@@ -26,6 +26,12 @@ export default function Orders() {
 		}
 		fetchData();
 	}, []);
+
+	React.useEffect(() => {
+		if (isPrinting && orders.length > 0) {
+			window.print();
+		}
+	}, [isPrinting, orders]);
 
 	const fetchOrders = async () => {
 		setLoading(true);
@@ -68,7 +74,7 @@ export default function Orders() {
 							<TableHead>Status</TableHead>
 							<TableHead>Amount</TableHead>
 							<TableHead>Buyer email</TableHead>
-							<TableHead>Actions</TableHead>
+							{isPrinting ?? <TableHead>Actions</TableHead>}
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -79,11 +85,13 @@ export default function Orders() {
 								<TableCell>{order.status}</TableCell>
 								<TableCell>{order.total_price.toFixed(2)}</TableCell>
 								<TableCell>{order.userInfo.email}</TableCell>
-								<TableCell>
-									<Button onClick={() => onCancel(order.id)}>
-										<CircleBackslashIcon />
-									</Button>
-								</TableCell>
+								{isPrinting ?? (
+									<TableCell>
+										<Button onClick={() => onCancel(order.id)}>
+											<CircleBackslashIcon />
+										</Button>
+									</TableCell>
+								)}
 							</TableRow>
 						))}
 					</TableBody>

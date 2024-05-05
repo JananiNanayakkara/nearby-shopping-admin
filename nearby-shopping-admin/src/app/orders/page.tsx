@@ -7,7 +7,9 @@ import {
 	BreadcrumbSeparator,
 } from '../../components/ui/breadcrumb';
 import Orders from '../../components/orders';
-import { HomeIcon } from '@radix-ui/react-icons';
+import { DownloadIcon, HomeIcon } from '@radix-ui/react-icons';
+import { Button } from '../../components/ui/button';
+import Link from 'next/link';
 
 export default function page() {
 	return (
@@ -29,7 +31,17 @@ export default function page() {
 					</BreadcrumbItem>
 				</BreadcrumbList>
 			</Breadcrumb>
-			<h1 className="text-3xl">Orders</h1>
+			<div className="flex flex-row justify-between">
+				<h1 className="text-3xl">Orders</h1>
+				<Button variant="outline">
+					<Link href="/print-orders">
+						<div className="flex gap-2">
+							<DownloadIcon className="w-4 h-4" />
+							Print
+						</div>
+					</Link>
+				</Button>
+			</div>
 			<Orders />
 		</div>
 	);

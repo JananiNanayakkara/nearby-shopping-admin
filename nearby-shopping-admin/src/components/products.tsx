@@ -15,7 +15,7 @@ import { TrashIcon } from '@radix-ui/react-icons';
 import { Button } from './ui/button';
 import users from './users';
 
-export default function Products() {
+export default function Products({ isPrinting }: { isPrinting?: boolean }) {
 	const [products, setProducts] = React.useState([]);
 	const [loading, setLoading] = React.useState(true);
 
@@ -27,6 +27,12 @@ export default function Products() {
 		}
 		fetchData();
 	}, []);
+
+	React.useEffect(() => {
+		if (isPrinting && products.length > 0) {
+			window.print();
+		}
+	}, [isPrinting, products]);
 
 	const fetchProducts = async () => {
 		setLoading(true);
@@ -73,7 +79,7 @@ export default function Products() {
 							<TableHead>Phone</TableHead>
 							<TableHead>Price</TableHead>
 							<TableHead>Stock?</TableHead>
-							<TableHead>Actions</TableHead>
+							{isPrinting ?? <TableHead>Actions</TableHead>}
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -86,15 +92,17 @@ export default function Products() {
 								<TableCell>{product.phone}</TableCell>
 								<TableCell>{product.price.toFixed(2)}</TableCell>
 								<TableCell>{product.isInStock ? 'yes' : 'no'}</TableCell>
-								<TableCell>
-									<Button
-										variant="destructive"
-										size="icon"
-										onClick={() => onDelete(product.id)}
-									>
-										<TrashIcon />
-									</Button>
-								</TableCell>
+								{isPrinting ?? (
+									<TableCell>
+										<Button
+											variant="destructive"
+											size="icon"
+											onClick={() => onDelete(product.id)}
+										>
+											<TrashIcon />
+										</Button>
+									</TableCell>
+								)}
 							</TableRow>
 						))}
 					</TableBody>
