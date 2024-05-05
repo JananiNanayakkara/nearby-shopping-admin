@@ -72,6 +72,11 @@ const OrderRequest = () => {
 							Order Date : {Moment(order.createdAt).format('MMMM Do YYYY')}
 						</Text>
 						<Text>Order Total : {order.total_price.toFixed(2)}</Text>
+
+						<Text className="mt-2 font-bold">Customer Details</Text>
+						<Text>Customer Name : {order?.buyerAddress ?? '-'}</Text>
+						<Text>Customer Email : {order?.buyerPhone ?? '-'}</Text>
+
 						<Text className="mt-2 font-bold">Order Items</Text>
 						<View>
 							{order.items.map((item) => (

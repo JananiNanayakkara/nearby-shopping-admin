@@ -133,9 +133,10 @@ router.get('/seller/:userId', async (req, res) => {
 			.from('users')
 			.select('id, address, phone')
 			.in(
-				'id',
+				'user_id',
 				orders.map((order) => order.userId)
 			);
+		console.log('🚀 ~ router.get ~ users:', users);
 
 		if (usersError) {
 			return res.status(500).json({ error: 'Error retrieving user addresses' });
@@ -143,7 +144,7 @@ router.get('/seller/:userId', async (req, res) => {
 
 		// Add buyer's address to the response
 		for (const order of orders) {
-			const user = users.find((user) => user.id === order.userId);
+			const user = users[0];
 			if (user) {
 				order.buyerAddress = user.address;
 				order.buyerPhone = user.phone;
