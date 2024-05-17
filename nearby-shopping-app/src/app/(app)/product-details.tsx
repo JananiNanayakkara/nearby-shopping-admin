@@ -58,8 +58,8 @@ const ProductDetails = () => {
 					</Text>
 				</View>
 			</View>
-			{user.id !== selectedProduct.userId ? (
-				selectedProduct.isInStock ? (
+			{user?.id !== selectedProduct?.userId ? (
+				selectedProduct?.isInStock ? (
 					<TouchableOpacity className="button" onPress={onAddToCart}>
 						<Text className="button-text">Add to cart</Text>
 					</TouchableOpacity>

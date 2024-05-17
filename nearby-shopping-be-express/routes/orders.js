@@ -131,7 +131,7 @@ router.get('/seller/:userId', async (req, res) => {
 		// Retrieve buyer's address from the users table
 		const { data: users, error: usersError } = await supabase
 			.from('users')
-			.select('id, address, phone')
+			.select('*')
 			.in(
 				'user_id',
 				orders.map((order) => order.userId)
@@ -144,8 +144,9 @@ router.get('/seller/:userId', async (req, res) => {
 
 		// Add buyer's address to the response
 		for (const order of orders) {
-			const user = users[0];
+			const user = users.find((user) => user.user_id === order.userId);
 			if (user) {
+				order.buyerName = user.username;
 				order.buyerAddress = user.address;
 				order.buyerPhone = user.phone;
 			}
@@ -155,16 +156,22 @@ router.get('/seller/:userId', async (req, res) => {
 		for (const order of orders) {
 			const { data: orderItems, error: orderItemsError } = await supabase
 				.from('order_products')
-				.select('productId')
+				.select('productId, quantity')
 				.eq('orderId', order.id);
 
 			if (orderItemsError) {
 				return res.status(500).json({ error: 'Error retrieving order items' });
 			}
 
-			order.items = products.filter((product) =>
-				orderItems.find((item) => item.productId === product.id)
-			);
+			order.items = orderItems.map((item) => {
+				const product = products.find(
+					(product) => product.id === item.productId
+				);
+				return {
+					...product,
+					quantity: item.quantity,
+				};
+			});
 		}
 
 		res.json(orders);
