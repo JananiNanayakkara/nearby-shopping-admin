@@ -74,7 +74,8 @@ const OrderRequest = () => {
 						<Text>Order Total : {order.total_price.toFixed(2)}</Text>
 
 						<Text className="mt-2 font-bold">Customer Details</Text>
-						<Text>Customer Name : {order?.buyerAddress ?? '-'}</Text>
+						<Text>Customer Name : {order?.buyerName ?? '-'}</Text>
+						<Text>Customer Address : {order?.buyerAddress ?? '-'}</Text>
 						<Text>Customer Email : {order?.buyerPhone ?? '-'}</Text>
 
 						<Text className="mt-2 font-bold">Order Items</Text>
@@ -83,6 +84,7 @@ const OrderRequest = () => {
 								<View key={item.id} className="my-2 border-y-[1px] py-2">
 									<Text>Item name : {item.productName}</Text>
 									<Text>Item description : {item.description}</Text>
+									<Text>Quantity : {item.quantity}</Text>
 									<Text>Item price : {item.price?.toFixed(2)}</Text>
 								</View>
 							))}
