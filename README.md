@@ -17,7 +17,7 @@ location, and save their favorite locations.
 To set up and run the Express backend server locally, follow these steps:
 
 Clone the repository from GitHub: git clone
-https://github.com/argonjs/nearby-shopping-fullstack.git Navigate to the project
+https://github.com/JananiNanayakkara/nearby-shopping-admin Navigate to the project
 directory: cd nearby-shopping-fullstack/backend Install the dependencies: npm
 install Create a .env file in the root directory and configure the following
 environment variables: DB_CONNECTION_STRING: Connection string for your MongoDB
