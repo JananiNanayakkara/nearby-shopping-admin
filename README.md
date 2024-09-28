@@ -1,3 +1,4 @@
+@author Janani Nanayakkara
 # Project Description
 
 The Nearby Shopping Fullstack project is a fullstack application that allows
